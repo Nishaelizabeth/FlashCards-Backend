@@ -193,7 +193,8 @@ def _normalize_english_guidance(payload: dict[str, Any]) -> dict[str, Any]:
         "body": _as_string_list(payload.get("body")),
         "conclusion": str(payload.get("conclusion", "")).strip(),
         "vocabulary": _as_string_list(payload.get("vocabulary")),
-        "sentence_starters": _as_string_list(payload.get("sentence_starters")),
+        "outline": _as_string_list(payload.get("outline")),
+        "tips": _as_string_list(payload.get("tips")),
     }
 
 
@@ -204,6 +205,8 @@ def _normalize_chinese_guidance(payload: dict[str, Any]) -> dict[str, Any]:
         "内容": _as_string_list(payload.get("内容")),
         "结尾": str(payload.get("结尾", "")).strip(),
         "好词好句": _as_string_list(payload.get("好词好句")),
+        "写作提纲": _as_string_list(payload.get("写作提纲")),
+        "写作建议": _as_string_list(payload.get("写作建议")),
     }
 
 
@@ -221,12 +224,16 @@ def generate_flashcards(text: str) -> list[dict[str, str]]:
     return _normalize_flashcards(card_items)
 
 
-def generate_english_composition(topic: str) -> dict[str, Any]:
+def generate_english_composition(topic: str, essay_type: str = "") -> dict[str, Any]:
     """Generate structured English composition guidance for Sec 1."""
     if not topic or not topic.strip():
         return _normalize_english_guidance({})
 
-    payload = call_ai(ENGLISH_SYSTEM_PROMPT, topic)
+    user_input = f"Topic: {topic}"
+    if essay_type:
+        user_input += f"\nEssay Type: {essay_type}"
+
+    payload = call_ai(ENGLISH_SYSTEM_PROMPT, user_input)
     if "error" in payload:
         return payload
 

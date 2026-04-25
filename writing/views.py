@@ -30,13 +30,14 @@ def _error_status_from_code(error_code: str) -> int:
 def generate_english(request):
 	"""Generate English composition guidance from a topic."""
 	topic = _topic_from_request(request)
+	essay_type = request.data.get("essay_type", "") if hasattr(request, "data") else ""
 	if not topic:
 		return Response(
 			{"error": "Topic is required."},
 			status=status.HTTP_400_BAD_REQUEST,
 		)
 
-	payload = generate_english_composition(topic)
+	payload = generate_english_composition(topic, essay_type)
 	if isinstance(payload, dict) and "error" in payload:
 		return Response(payload, status=_error_status_from_code(payload["error"]))
 
