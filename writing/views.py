@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from services.ai_service import (
 	generate_chinese_composition,
 	generate_english_composition,
+	translate_text,
 )
 
 
@@ -57,6 +58,25 @@ def generate_chinese(request):
 		)
 
 	payload = generate_chinese_composition(topic)
+	if isinstance(payload, dict) and "error" in payload:
+		return Response(payload, status=_error_status_from_code(payload["error"]))
+
+	return Response(payload, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def translate_chinese_text(request):
+	"""Translate Chinese text into English."""
+	text = request.data.get("text", "") if hasattr(request, "data") else ""
+	if not text or not text.strip():
+		return Response(
+			{"error": "Text is required."},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+
+	payload = translate_text(text)
 	if isinstance(payload, dict) and "error" in payload:
 		return Response(payload, status=_error_status_from_code(payload["error"]))
 

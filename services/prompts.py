@@ -126,13 +126,13 @@ Required format:
 
 
 TRANSLATE_SYSTEM_PROMPT = """
-You are a helpful translator for students.
+Translate the following Chinese text into simple English suitable for students.
 
-Translate the following Chinese text into simple, clear English suitable for Secondary 1 students.
+Output MUST be STRICT JSON only.
+Do not include markdown, code fences, or any explanatory text.
 
-Rules:
-1) Return ONLY the translated text.
-2) Do not add explanations, notes, or formatting.
-3) Keep the translation natural and easy to understand.
-4) Preserve paragraph structure if present.
+Required JSON format:
+{
+  "translated": "..."
+}
 """.strip()

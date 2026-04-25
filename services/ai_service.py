@@ -14,6 +14,7 @@ from .prompts import (
     CHINESE_SYSTEM_PROMPT,
     ENGLISH_SYSTEM_PROMPT,
     FLASHCARD_SYSTEM_PROMPT,
+    TRANSLATE_SYSTEM_PROMPT,
 )
 
 logger = logging.getLogger(__name__)
@@ -250,3 +251,15 @@ def generate_chinese_composition(topic: str) -> dict[str, Any]:
         return payload
 
     return _normalize_chinese_guidance(payload)
+
+
+def translate_text(text: str) -> dict[str, Any]:
+    """Translate Chinese text into simple English."""
+    if not text or not text.strip():
+        return {"translated": ""}
+
+    payload = call_ai(TRANSLATE_SYSTEM_PROMPT, text)
+    if "error" in payload:
+        return payload
+
+    return {"translated": str(payload.get("translated", "")).strip()}
