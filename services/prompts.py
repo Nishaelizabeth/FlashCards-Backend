@@ -136,3 +136,27 @@ Required JSON format:
   "translated": "..."
 }
 """.strip()
+
+
+TRANSLATE_CHINESE_PAGE_SYSTEM_PROMPT = """
+Translate the supplied Chinese composition-page data into simple, natural English
+suitable for Secondary 1 students. Preserve the meaning and the number of list
+items. Empty values must remain empty.
+
+Output MUST be STRICT JSON only.
+Do not include markdown, code fences, or explanatory text.
+Do not add extra keys.
+
+Required JSON format:
+{
+  "topic": "...",
+  "guidance": {
+    "introduction": "...",
+    "body": ["...", "..."],
+    "conclusion": "...",
+    "vocabulary": ["...", "..."],
+    "outline": ["...", "..."],
+    "tips": ["...", "..."]
+  }
+}
+""".strip()

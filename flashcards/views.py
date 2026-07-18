@@ -56,23 +56,22 @@ def _validate_uploaded_image(uploaded_file) -> str | None:
 	return None
 
 
+import time
+
 def _extract_text_from_image(uploaded_file) -> str:
-	"""Extract text from an uploaded image with basic OCR preprocessing."""
+	"""Extract text from an uploaded image with OCR preprocessing."""
 	uploaded_file.seek(0)
+	start_time = time.time()
+	
 	with Image.open(uploaded_file) as image:
-		processed_image = ImageOps.grayscale(image)
-		processed_image = ImageOps.autocontrast(processed_image)
+		processed_image = image.convert("L")
+		processed_image.thumbnail((1200, 1200))
 
-		min_dimension = min(processed_image.size)
-		if min_dimension < MIN_OCR_DIMENSION:
-			scale_ratio = MIN_OCR_DIMENSION / float(min_dimension)
-			new_size = (
-				int(processed_image.width * scale_ratio),
-				int(processed_image.height * scale_ratio),
-			)
-			processed_image = processed_image.resize(new_size, Image.Resampling.LANCZOS)
-
-		return pytesseract.image_to_string(processed_image, config="--oem 3 --psm 6")
+		text = pytesseract.image_to_string(processed_image, config="--oem 3 --psm 6", timeout=60)
+		
+		elapsed = time.time() - start_time
+		logger.info("OCR processing completed in %.2f seconds.", elapsed)
+		return text
 
 
 def _clean_ocr_text(raw_text: str) -> str:
@@ -182,6 +181,15 @@ def generate_flashcards(request):
 			{
 				"success": False,
 				"error": "Could not read the uploaded image.",
+			},
+			status=status.HTTP_400_BAD_REQUEST,
+		)
+	except RuntimeError:
+		logger.exception("OCR processing timed out or failed.")
+		return Response(
+			{
+				"success": False,
+				"error": "OCR processing took too long. Please upload a clearer or smaller image.",
 			},
 			status=status.HTTP_400_BAD_REQUEST,
 		)

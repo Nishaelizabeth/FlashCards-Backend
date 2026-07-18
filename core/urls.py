@@ -10,7 +10,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from writing.views import generate_chinese, generate_english, translate_chinese_text
+from writing.views import (
+    generate_chinese,
+    generate_english,
+    translate_chinese_page_content,
+    translate_chinese_text,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -19,6 +24,11 @@ urlpatterns = [
     path("api/english/", generate_english, name="api_english_alias"),
     path("api/chinese/", generate_chinese, name="api_chinese_alias"),
     path("api/translate/", translate_chinese_text, name="api_translate_alias"),
+    path(
+        "api/translate/chinese-page/",
+        translate_chinese_page_content,
+        name="api_translate_chinese_page_alias",
+    ),
 ]
 
 # Serve media files in development

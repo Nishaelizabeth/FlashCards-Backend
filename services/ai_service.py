@@ -8,12 +8,13 @@ from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AuthenticationError, OpenAI
 
 from .prompts import (
     CHINESE_SYSTEM_PROMPT,
     ENGLISH_SYSTEM_PROMPT,
     FLASHCARD_SYSTEM_PROMPT,
+    TRANSLATE_CHINESE_PAGE_SYSTEM_PROMPT,
     TRANSLATE_SYSTEM_PROMPT,
 )
 
@@ -140,6 +141,13 @@ def call_ai(system_prompt: str, user_input: str) -> dict[str, Any]:
                 {"role": "user", "content": user_input},
             ],
         )
+    except AuthenticationError:
+        detail = (
+            "OpenAI rejected OPENAI_API_KEY. Replace it with an active API key "
+            "in backend/.env, then restart the backend server."
+        )
+        logger.error("OpenAI authentication failed. %s", detail)
+        return {"error": "authentication_error", "detail": detail}
     except Exception as exc:
         logger.exception("OpenAI request failed.")
         return {"error": "request_failed", "detail": str(exc)}
@@ -263,3 +271,44 @@ def translate_text(text: str) -> dict[str, Any]:
         return payload
 
     return {"translated": str(payload.get("translated", "")).strip()}
+
+
+def translate_chinese_page(
+    topic: str = "", guidance: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Translate a Chinese page topic and structured guidance into English."""
+    guidance = guidance if isinstance(guidance, dict) else {}
+    source = {
+        "topic": str(topic or "").strip(),
+        "guidance": {
+            "开头": str(guidance.get("开头", "")).strip(),
+            "内容": _as_string_list(guidance.get("内容")),
+            "结尾": str(guidance.get("结尾", "")).strip(),
+            "好词好句": _as_string_list(guidance.get("好词好句")),
+            "写作提纲": _as_string_list(guidance.get("写作提纲")),
+            "写作建议": _as_string_list(guidance.get("写作建议")),
+        },
+    }
+
+    payload = call_ai(
+        TRANSLATE_CHINESE_PAGE_SYSTEM_PROMPT,
+        json.dumps(source, ensure_ascii=False),
+    )
+    if "error" in payload:
+        return payload
+
+    translated_guidance = payload.get("guidance", {})
+    if not isinstance(translated_guidance, dict):
+        translated_guidance = {}
+
+    return {
+        "topic": str(payload.get("topic", "")).strip(),
+        "guidance": {
+            "introduction": str(translated_guidance.get("introduction", "")).strip(),
+            "body": _as_string_list(translated_guidance.get("body")),
+            "conclusion": str(translated_guidance.get("conclusion", "")).strip(),
+            "vocabulary": _as_string_list(translated_guidance.get("vocabulary")),
+            "outline": _as_string_list(translated_guidance.get("outline")),
+            "tips": _as_string_list(translated_guidance.get("tips")),
+        },
+    }
