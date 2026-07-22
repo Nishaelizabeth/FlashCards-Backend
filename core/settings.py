@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     # Local apps
     "flashcards",
     "writing",
+    "studio",
 ]
 
 MIDDLEWARE = [

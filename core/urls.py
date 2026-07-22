@@ -20,6 +20,7 @@ from writing.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/flashcards/", include("flashcards.urls")),
+    path("api/studio/", include("studio.urls")),
     path("api/writing/", include("writing.urls")),
     path("api/english/", generate_english, name="api_english_alias"),
     path("api/chinese/", generate_chinese, name="api_chinese_alias"),
